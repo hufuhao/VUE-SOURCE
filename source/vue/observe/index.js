@@ -9,7 +9,7 @@ export function initState (vm) {
     initComputed() // 初始化computed
   }
   if (opts.watch) {
-    initWatch() // 初始化 watch
+    initWatch(vm) // 初始化 watch
   }
 }
 function proxy (vm, source, key) { // 代理数据
@@ -46,7 +46,18 @@ function initData (vm) {
 function initComputed () {
 
 }
+function createWatcher (vm, key, handler, opts) {
+  return vm.$watch(key, handler, opts)
+}
 
-function initWatch () {
-
+function initWatch (vm) {
+  let watch = vm.$options.watch
+  for (let key in watch) {
+    let userDef = watch[key]
+    let handler = userDef
+    if (userDef.handler) {
+      handler = userDef.handler
+    }
+    createWatcher(vm, key, handler, { immediate: userDef.immediate })
+  }
 }

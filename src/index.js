@@ -13,9 +13,16 @@ let vm = new Vue({
 
   },
   watch: {
-    msg (newValue, oldValue) {
-      console.log(newValue, 'newValue')
-      console.log(oldValue, '=oldValue')
+    // msg (newValue, oldValue) {
+    //   console.log(newValue, '=newValue')
+    //   console.log(oldValue, '=oldValue')
+    // }
+    msg: {
+      handler (newValue, oldValue) {
+        console.log(newValue, '=newValue')
+        console.log(oldValue, '=oldValue')
+      },
+      immediate: true
     }
   }
 })

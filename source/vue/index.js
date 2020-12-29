@@ -16,6 +16,10 @@ Vue.prototype._init = function (options) {
     vm.$mount()
   }
 }
+Vue.prototype.$watch = function (expr, handler, opts) {
+  let vm = this
+  new Watcher(vm, expr, handler, { user: true, ...opts })
+}
 function query (el) {
   if (typeof el === 'string') {
     return document.querySelector(el)
@@ -76,4 +80,4 @@ export default Vue
 // 用户调用数组原型上的方法时，根据__ob__找到watcher对应的dep，调用notify方法
 
 // wtach
-// 重新new Watcher, 初始化时获取到旧值，变化完之后拿到新值，然后传给用户
+// 创建一个new Watcher, 初始化时默认会调用get方法，获取到旧值，变化完之后会调用run方法 拿到新值，然后传给用户
