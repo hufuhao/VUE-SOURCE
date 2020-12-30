@@ -81,3 +81,11 @@ export default Vue
 
 // wtach
 // 创建一个new Watcher, 初始化时默认会调用get方法，获取到旧值，变化完之后会调用run方法 拿到新值，然后传给用户
+
+// 计算属性 特点，默认不执行，等用户取值的时候在执行，会缓存取值的结果
+// 如果依赖的值变化了， 会更新dirty属性，再次取值时 可以重新求值 
+// 渲染页面 ，放入一个渲染watcher，然后去取计算属性的值，会再放入一个计算属性watcher, 并执行计算属性的方法，这个时候就有两个watcher在栈里面
+// 获取 this.firstName this.lastName, 在获取的过程中，会将firstName 和 lastName 的dep存入计算属性的dep 和 watcher中，
+// 然后计算属性的watcher里面就有2个dep, 同时first 和 last里的dep都会放入计算属性的watcher，并将dirty = false
+// 之后将firstName.dep, lastName.dep 都去收集渲染watcher，这样first 和 last里就有两个watcher 分别是 计算和渲染watcher
+// 当first的值变化之后，用调用dep里存的watcher，依次执行 计算属性watcher.update 将dirty = ture, 在调用渲染watcher，重新获取fullName

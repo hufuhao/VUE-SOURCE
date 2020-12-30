@@ -9,6 +9,8 @@ let id = 0
  * @param {*} opts 一些其他参数
  */
 class Watcher {
+  //          vm, (newVlaue, oldValue) => {}, {user:true}
+  //          vm, ()=>this.firstName + this.lastName  { lazy: true }
   constructor(vm, exprOrFn, cb = () => { }, opts = {}) {
     this.vm = vm
     this.exprOrFn = exprOrFn
@@ -24,6 +26,8 @@ class Watcher {
     if (opts.user) {
       this.user = true
     }
+    this.lazy = opts.lazy // 如果这个值为true，说明他是计算属性
+    this.dirty = this.lazy
     this.depsId = new Set()
     this.deps = []
     this.cb = cb
@@ -31,7 +35,8 @@ class Watcher {
     this.id = id++
     this.immediate = opts.immediate
     // 创建watcher的时候，先将表达式的值取出来(老值)
-    this.value = this.get()
+    // 如果当前我们是计算属性，不会默认调用get方法
+    this.value = this.lazy ? undefined : this.get()
     if (this.immediate) {
       this.cb(this.value)
     }
@@ -41,14 +46,28 @@ class Watcher {
     // 初始化渲染watcher，Dep.target = warcher
     pushTarget(this)
 
-    let vlaue = this.getter()  // 传入的 exprOrFn 渲染
+    // let vlaue = this.getter()  // 传入的 exprOrFn 渲染
+
+    // 这个方法会将当前计算属性的watcher存起来 fullName() {return this.firstName+this.lastName}
+    let vlaue = this.getter.call(this.vm)  // 传入的 exprOrFn 渲染
     // 渲染完成之后，删除传入的watcher
     popTarget()
     return vlaue
   }
+  depend () {
+    let i = this.deps.length
+    console.log(this.deps, '==this.deps')
+    while (i--) {
+      this.deps[i].depend()
+    }
+  }
   update () {
     // this.get()
-    queueWatcher(this)
+    if (this.lazy) {
+      this.dirty = true // 计算属性依赖的值发生变化了，一会取值的时候重新计算
+    } else {
+      queueWatcher(this)
+    }
   }
   run () {
     let value = this.get() // 新值
@@ -64,6 +83,11 @@ class Watcher {
       this.deps.push(dep) // 让watcher 记住了当前dep
       dep.addSub(this)
     }
+  }
+  evaluate () {
+    this.value = this.get()
+
+    this.dirty = false // 值求过了 下次渲染的时候不用求了
   }
 }
 // 批量更新， 去重
