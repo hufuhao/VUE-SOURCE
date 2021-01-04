@@ -25,16 +25,16 @@ function updateProperties (vnode, oldProps = {}) {
 
   let newStyle = newProps.style || {}
   let oldStyle = oldProps.style || {}
-
-  // 如果老的中有属性 新的中没有
+  // 如果老的有style 新的没有style 就将属性style置为空
   for (let key in oldStyle) {
     if (!newStyle[key]) {
       el.style[key] = ''
     }
   }
+  // 如果新的中没有这个属性了 那就直接在dom中删掉这个属性
   for (let key in oldProps) {
     if (!newProps[key]) {
-      delete el[key] // 如果新的中没有这个属性了 那就直接在dom中删掉这个属性
+      delete el[key]
     }
   }
   for (let key in newProps) {
@@ -48,4 +48,43 @@ function updateProperties (vnode, oldProps = {}) {
       el[key] = newProps[key]
     }
   }
+}
+
+export function patch (oldVnode, newVnode) {
+  console.log(oldVnode.tag, newVnode.tag)
+  // 1) 先比对 标签是否一致
+  if (newVnode.tag !== oldVnode.tag) {
+    // 先拿到当前元素的父级
+    oldVnode.el.parentNode.replaceChild(createElm(newVnode), oldVnode.el)
+  }
+  // // 2) 比较文本 标签一样 可能都是undefined, 上一步已经判断过，所以标签要不然都有 要不然都没有
+  if (!oldVnode.tag) {
+    if (oldVnode.text !== newVnode.text) {
+      // 如果内容不一致 直接替换
+      oldVnode.el.textContent = newVnode.text
+    }
+  }
+  // 标签一样 属性不一样
+  let el = newVnode.el = oldVnode.el
+  updateProperties(newVnode, oldVnode.props)
+
+  // 3) 比较孩子
+  let oldChildren = oldVnode.children || []
+  let newChildren = newVnode.children || []
+
+  // 老的有孩子 新的也有孩子 updateChildren
+  if (oldChildren.length > 0 && newChildren.length > 0) {
+    updateChildren(el, oldChildren, newChildren)
+  } else if (oldChildren.length > 0) { // 老的有孩子 新的没孩子
+    el.innerHTML = ''
+  } else if (newChildren.length > 0) { // 新的有孩子 老没孩子
+    for (let i = 0; i < newChildren.length; i++) {
+      let child = newChildren[i]
+      el.appendChild(createElm(child))
+    }
+  }
+}
+
+function updateChildren (parent, oldChildren, newChildren) {
+
 }

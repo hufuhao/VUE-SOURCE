@@ -57,7 +57,6 @@ function createComputedGetter (vm, key) {
       }
       if (Dep.target) { // 疑问？
         // dep = [firstName.dep, lastName.dep], 都去收集渲染watcher
-        console.log('aaa')
         watcher.depend()
       }
       return watcher.value
