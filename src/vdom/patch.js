@@ -20,7 +20,7 @@ function createElm (vnode) {
   return vnode.el
 }
 function updateProperties (vnode, oldProps = {}) {
-  let newProps = vnode.props // 获取当前节点中的属性
+  let newProps = vnode.props || {} // 获取当前节点中的属性
   let el = vnode.el // 真实的节点
 
   let newStyle = newProps.style || {}
@@ -84,7 +84,40 @@ export function patch (oldVnode, newVnode) {
     }
   }
 }
-
+function isSameVnode (oldVnode, newVnode) {
+  // 如果两个人的标签和key一样 我认为是同一个节点
+  return (oldVnode.tag === newVnode.tag) && (oldVnode.key === newVnode.key)
+}
 function updateChildren (parent, oldChildren, newChildren) {
+  // vue增加了很多优化策略 因为在浏览器中操作dom最常见的方法是 开头或者结尾插入
+  // 设计到正序和倒叙
 
+  let oldStartIndex = 0 // 老的索引开始
+  let oldStartVnode = oldChildren[0] // 老的节点开始
+  let oldEndIndex = oldChildren.length - 1 // 老的索引结束
+  let oldEndVnode = oldChildren[oldEndIndex] // 老的节点结尾
+
+  let newStartIndex = 0 // 新的索引开始
+  let newStartVnode = newChildren[0] // 新的节点开始
+  let newEndIndex = newChildren.length - 1 // 新的索引结束
+  let newEndVnode = newChildren[newEndIndex] // 新的节点结尾
+
+  while (oldStartIndex <= oldEndIndex && newStartIndex <= newEndIndex) {
+    if (isSameVnode(oldStartVnode, newStartVnode)) { // 从头部开始对比
+      patch(oldStartVnode, newStartVnode) // 用新的属性来更新老的属性，递归比较儿子
+      oldStartVnode = oldChildren[++oldStartIndex]
+      newStartVnode = newChildren[++newStartIndex]
+    }
+    else if (isSameVnode(oldEndVnode, newEndVnode)) { // 从尾部开始对比
+      // patch(oldEndVnode, newEndVnode)
+
+    }
+  }
+  // 如果到最后还剩余 需要将剩余的插入
+  if (newStartIndex <= newEndIndex) {
+    for (let i = newStartIndex; i <= newEndIndex; i++) {
+      // let ele = newChildren[newEndIndex + 1] == null ?
+      parent.appendChild(createElm(newChildren[i]))
+    }
+  }
 }
