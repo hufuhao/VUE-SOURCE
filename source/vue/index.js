@@ -1,6 +1,7 @@
 import { initState } from './observe'
 import Watcher from './observe/watcher'
 import { compiler, util } from './utils'
+import { h, render, path, patch } from './vdom'
 function Vue (options) {
   // 初始化vue 
   this._init(options)
@@ -26,24 +27,35 @@ function query (el) {
   }
   return el
 }
-Vue.prototype._update = function () {
+Vue.prototype._update = function (vnode) {
   console.log('更新数据')
   // 用用户传入的数据，去更新视图
   let vm = this
   let el = vm.$el
 
-  // 要循环这个元素 将里面的内容 换成我们的数据 如 {{}}
-  let node = document.createDocumentFragment()
-  let firstChild
-  //每次拿到第一个元素，将元素依次放到node里面
-  while (firstChild = el.firstChild) {
-    // appendChild 具有移动的功能
-    node.appendChild(firstChild)
+  let preVnode = vm.preVnode // 初次渲染没有，下次就有值了
+  if (!preVnode) {
+    vm.preVnode = vnode // 将初次渲染的vnode存起来
+    render(vnode, el)
+  } else {
+    vm.$el = patch(preVnode, vnode)
   }
-
-  compiler(node, vm)
-
-  el.appendChild(node)
+  // // 要循环这个元素 将里面的内容 换成我们的数据 如 {{}}
+  // let node = document.createDocumentFragment()
+  // let firstChild
+  // //每次拿到第一个元素，将元素依次放到node里面
+  // while (firstChild = el.firstChild) {
+  //   // appendChild 具有移动的功能
+  //   node.appendChild(firstChild)
+  // }
+  // compiler(node, vm)
+  // el.appendChild(node)
+}
+Vue.prototype._render = function () {
+  let vm = this
+  let render = vm.$options.render // 获取用户编写的render
+  let vnode = render.call(this, h) //  h('p',{id:XX}), 返回文本节点
+  return vnode
 }
 Vue.prototype.$mount = function () {
   let vm = this
@@ -52,9 +64,9 @@ Vue.prototype.$mount = function () {
 
   // 接下来要渲染页面，渲染是同watcher来渲染的，渲染watcher
   // vue2.0组架级别更新
-
+  let render = vm.render
   let updateComponent = () => { // 更新组件，渲染组件
-    vm._update()
+    vm._update(vm._render())
   }
   // 渲染watcher，默认用调用updateComponent
   new Watcher(vm, updateComponent)
