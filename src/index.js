@@ -12,11 +12,11 @@ render(oldVnode, container)
 
 // patchVnode 用新的虚拟节点 和 老的虚拟节点做对比， 更新真是dom元素
 let newVnode = h('div', { id: 'aa' },
+  h('li', { style: { background: 'pink' }, key: 'e' }, 'e'),
   h('li', { style: { background: 'red' }, key: 'a' }, 'a'),
-  h('li', { style: { background: 'yellow' }, key: 'b' }, 'b'),
+  h('li', { style: { background: 'yellow' }, key: 'f' }, 'f'),
   h('li', { style: { background: 'blue' }, key: 'c' }, 'c'),
-  h('li', { style: { background: 'pink' }, key: 'd' }, 'd'),
-  h('li', { style: { background: 'purple' }, key: 'e' }, 'e'),
+  h('li', { style: { background: 'pink' }, key: 'n' }, 'n'),
 )
 
 setTimeout(() => {
